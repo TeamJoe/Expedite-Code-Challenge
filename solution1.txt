@@ -1,0 +1,126 @@
+'use strict';
+
+const fs = require('fs');
+
+process.stdin.resume();
+process.stdin.setEncoding('utf-8');
+
+let inputString = '';
+let currentLine = 0;
+
+process.stdin.on('data', function(inputStdin) {
+    inputString += inputStdin;
+});
+
+process.stdin.on('end', function() {
+    inputString = inputString.split('\n');
+
+    main();
+});
+
+function readLine() {
+    return inputString[currentLine++];
+}
+
+
+
+/*
+ * Complete the 'getTimes' function below.
+ *
+ * The function is expected to return an INTEGER_ARRAY.
+ * The function accepts following parameters:
+ *  1. INTEGER_ARRAY time
+ *  2. INTEGER_ARRAY direction
+ */
+
+function getNextValue(cron, time) {
+    let value = [];
+    for (let i = 0; i < time.length; i++) {
+        if (time[i] == cron) {
+            value.push(i);
+        }
+    }
+
+    return value;
+}
+
+function getNextTime(start, time) {
+    let value = -1;
+    for (let i = 0; i < time.length; i++) {
+        if (time[i] > start && (value == -1 || time[i] < value)) {
+            value = time[i];
+        }
+    }
+    return value;
+}
+
+function getTimes(time, direction) {
+    // Write your code here
+    let result = [];
+    let nextDirection = 1;
+    let currentTime = getNextTime(-1, time);
+    let entranceQueue = [];
+    let exitQueue = [];
+    while (currentTime != -1) {
+        let nextValues = getNextValue(currentTime, time);
+        for (let i = 0; i < nextValues.length; i++) {
+            if (direction[nextValues[i]] == 0) {
+                entranceQueue.push(nextValues[i]);
+            } else {
+                exitQueue.push(nextValues[i]);
+            }
+        }
+
+        if (nextDirection == 1 && exitQueue.length > 0) {
+            result[exitQueue.shift()] = currentTime;
+        } else if (nextDirection == 0 && entranceQueue.length > 0) {
+            result[entranceQueue.shift()] = currentTime;
+        } else if (exitQueue.length > 0) {
+            result[exitQueue.shift()] = currentTime;
+            nextDirection = 1;
+        } else if (entranceQueue.length > 0) {
+            result[entranceQueue.shift()] = currentTime;
+            nextDirection = 0;
+        }
+
+        if (entranceQueue.length == 0 && exitQueue.length == 0) {
+            let nextTime = getNextTime(currentTime, time);
+            if (nextTime > currentTime + 1) {
+                nextDirection = 1;
+            }
+            currentTime = nextTime;
+        } else {
+            currentTime++;
+        }
+    }
+
+    return result;
+}
+
+function main() {
+    const ws = fs.createWriteStream(process.env.OUTPUT_PATH);
+
+    const timeCount = parseInt(readLine().trim(), 10);
+
+    let time = [];
+
+    for (let i = 0; i < timeCount; i++) {
+        const timeItem = parseInt(readLine().trim(), 10);
+        time.push(timeItem);
+    }
+
+    const directionCount = parseInt(readLine().trim(), 10);
+
+    let direction = [];
+
+    for (let i = 0; i < directionCount; i++) {
+        const directionItem = parseInt(readLine().trim(), 10);
+        direction.push(directionItem);
+    }
+
+    const result = getTimes(time, direction);
+
+    ws.write(result.join('\n') + '\n');
+
+    ws.end();
+}

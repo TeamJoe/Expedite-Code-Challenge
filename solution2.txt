@@ -1,0 +1,113 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.regex.*;
+import java.util.stream.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
+
+
+class Result {
+
+    /*
+     * Complete the 'maxPathSum' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts following parameters:
+     *  1. 2D_INTEGER_ARRAY board
+     *  2. INTEGER p
+     *  3. INTEGER q
+     */
+
+    static class position {
+         int value = 0;
+         int x = 0;
+         int y = 0;
+         boolean directionIsUp = false;
+
+         position(int value, int x, int y, boolean directionIsUp) {
+             this.value = value;
+             this.x = x;
+             this.y = y;
+             this.directionIsUp = directionIsUp;
+         }
+     }
+
+    public static int maxPathSum(List<List<Integer>> board, int p, int q) {
+        int highestValue = Integer.MIN_VALUE;
+        List<position> list = new LinkedList<>();
+        list.add(new position(0, p, 0, false));
+        list.add(new position(0, q, board.size() - 1, true));
+
+        while(list.size() > 0) {
+            position pos = list.remove(0);
+            if (pos.x >= 0 && pos.x < board.get(pos.y).size()) {
+                pos.value += board.get(pos.y).get(pos.x);
+
+                if (pos.directionIsUp && pos.y == 0) {
+                    if (highestValue < pos.value) {
+                        highestValue = pos.value;
+                    }
+                } else if (!pos.directionIsUp && pos.y == board.size() - 1) {
+                    if (highestValue < pos.value) {
+                        highestValue = pos.value;
+                    }
+                } else if (pos.directionIsUp) {
+                    list.add(new position(pos.value, pos.x - 1, pos.y - 1, pos.directionIsUp));
+                    list.add(new position(pos.value, pos.x, pos.y - 1, pos.directionIsUp));
+                    list.add(new position(pos.value, pos.x + 1, pos.y - 1, pos.directionIsUp));
+                } else {
+                    list.add(new position(pos.value, pos.x - 1, pos.y + 1, pos.directionIsUp));
+                    list.add(new position(pos.value, pos.x, pos.y + 1, pos.directionIsUp));
+                    list.add(new position(pos.value, pos.x + 1, pos.y + 1, pos.directionIsUp));
+                }
+            }
+
+            
+        }
+
+        return highestValue;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int boardRows = Integer.parseInt(bufferedReader.readLine().trim());
+        int boardColumns = Integer.parseInt(bufferedReader.readLine().trim());
+
+        List<List<Integer>> board = new ArrayList<>();
+
+        IntStream.range(0, boardRows).forEach(i -> {
+            try {
+                board.add(
+                    Stream.of(bufferedReader.readLine().replaceAll("\\s+$", "").split(" "))
+                        .map(Integer::parseInt)
+                        .collect(toList())
+                );
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        int p = Integer.parseInt(bufferedReader.readLine().trim());
+
+        int q = Integer.parseInt(bufferedReader.readLine().trim());
+
+        int result = Result.maxPathSum(board, p, q);
+
+        bufferedWriter.write(String.valueOf(result));
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
